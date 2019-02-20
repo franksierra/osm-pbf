@@ -29,6 +29,9 @@
     "psr-4": {
       "OSMReader\\": [
         "src/"
+      ],
+      "OSMProto\\": [
+        "src/OSMProto/"
       ]
     }
   }
