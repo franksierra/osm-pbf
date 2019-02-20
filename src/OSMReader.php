@@ -8,24 +8,30 @@
 
 namespace OSMReader;
 
+use OSMProto\Blob;
+use OSMProto\BlobHeader;
+use OSMProto\HeaderBlock;
+use OSMProto\PrimitiveBlock;
 use PhpBinaryReader\BinaryReader;
 
 class OSMReader
 {
     private $reader = null;
 
+    private $current_primitive = null;
+
     public function __construct($pbfdata)
     {
         $this->reader = new BinaryReader($pbfdata, "big");
     }
 
+    public function getReader()
+    {
+        return $this->reader;
+    }
+
     public function readHeader()
     {
-
-
-        /**
-         * OSMHeader
-         */
         $size = $this->reader->readUInt32();
         $header_data = $this->reader->readFromHandle($size);
         $header = new BlobHeader();
@@ -39,67 +45,37 @@ class OSMReader
         $header_block = new HeaderBlock();
         $header_block->mergeFromString($blob_uncompressed);
 
-        ////////////////////////////////////////////////////
-
-        /**
-         * OSMData
-         */
-        $size = $this->reader->readUInt32();
-        $header_data = $this->reader->readFromHandle($size);
-        $header = new BlobHeader();
-        $header->mergeFromString($header_data);
-        $blob_data = $this->reader->readFromHandle($header->getDatasize());
-        $blob = new Blob();
-        $blob->mergeFromString($blob_data);
-
-        $blob_uncompressed = zlib_decode($blob->getZlibData());
-
-        $primitive_block = new PrimitiveBlock();
-        $primitive_block->mergeFromString($blob_uncompressed);
-
-        ////////////////////////////////////////////////////
-
-        /**
-         * OSMData
-         */
-        $size = $this->reader->readUInt32();
-        $header_data = $this->reader->readFromHandle($size);
-        $header = new BlobHeader();
-        $header->mergeFromString($header_data);
-        $blob_data = $this->reader->readFromHandle($header->getDatasize());
-        $blob = new Blob();
-        $blob->mergeFromString($blob_data);
-
-        $blob_uncompressed = zlib_decode($blob->getZlibData());
-
-        $primitive_block = new PrimitiveBlock();
-        $primitive_block->mergeFromString($blob_uncompressed);
-
-
-//
-//
-//        $size = $this->reader->readUInt32();
-//        $header_data = $this->reader->readFromHandle($size);
-//
-//        $header = new BlobHeader();
-//        $header->mergeFromString($header_data);
-//
-//        $blob_data = $this->reader->readFromHandle($header->getDatasize());
-//        $blob = new Blob();
-//        $blob->mergeFromString($blob_data);
-//
-//        $blob_uncompressed = zlib_decode($blob->getZlibData());
-//
-//        $header_block = new HeaderBlock();
-//        $header_block->mergeFromString($blob_uncompressed);
-
-
-        return $header;
+        return $header_block;
     }
 
-    public function readBlob($size)
+    public function readData()
     {
+        /**
+         * OSMData
+         */
+        $size = $this->reader->readUInt32();
+        $header_data = $this->reader->readFromHandle($size);
+        $header = new BlobHeader();
+        $header->mergeFromString($header_data);
+        $blob_data = $this->reader->readFromHandle($header->getDatasize());
+        $blob = new Blob();
+        $blob->mergeFromString($blob_data);
 
+        $blob_uncompressed = zlib_decode($blob->getZlibData());
+
+        $primitive_block = new PrimitiveBlock();
+        $primitive_block->mergeFromString($blob_uncompressed);
+
+        $current_primitive = $primitive_block;
+
+        return $primitive_block;
     }
+
+    public function next()
+    {
+        return $this->readData();
+    }
+
+
 
 }
