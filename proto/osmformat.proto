@@ -15,11 +15,6 @@
 
 */
 
-syntax = "proto3";
-option optimize_for = LITE_RUNTIME;
-option java_package = "crosby.binary";
-package OSMPBF;
-
 /* OSM Binary file format
 
 This is the master schema file of the OSM binary file format. This
@@ -53,208 +48,200 @@ coding when representing nodes and relations.
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
+syntax = "proto3";
+package OSMReader;
 /* Contains the file header. */
 
 message HeaderBlock {
-  HeaderBBox bbox = 1;
-  /* Additional tags to aid in parsing this dataset */
-  repeated string required_features = 4;
-  repeated string optional_features = 5;
+    HeaderBBox bbox = 1;
+    /* Additional tags to aid in parsing this dataset */
+    repeated string required_features = 4;
+    repeated string optional_features = 5;
 
-  string writingprogram = 16;
-  string source = 17; // From the bbox field.
+    string writingprogram = 16;
+    string source = 17; // From the bbox field.
 
-  /* Tags that allow continuing an Osmosis replication */
+    /* Tags that allow continuing an Osmosis replication */
 
-  // replication timestamp, expressed in seconds since the epoch,
-  // otherwise the same value as in the "timestamp=..." field
-  // in the state.txt file used by Osmosis
-  int64 osmosis_replication_timestamp = 32;
+    // replication timestamp, expressed in seconds since the epoch,
+    // otherwise the same value as in the "timestamp=..." field
+    // in the state.txt file used by Osmosis
+    int64 osmosis_replication_timestamp = 32;
 
-  // replication sequence number (sequenceNumber in state.txt)
-  int64 osmosis_replication_sequence_number = 33;
+    // replication sequence number (sequenceNumber in state.txt)
+    int64 osmosis_replication_sequence_number = 33;
 
-  // replication base URL (from Osmosis' configuration.txt file)
-  string osmosis_replication_base_url = 34;
+    // replication base URL (from Osmosis' configuration.txt file)
+    string osmosis_replication_base_url = 34;
 }
-
 
 /** The bounding box field in the OSM header. BBOX, as used in the OSM
 header. Units are always in nanodegrees -- they do not obey
 granularity rules. */
 
 message HeaderBBox {
-   sint64 left = 1;
-   sint64 right = 2;
-   sint64 top = 3;
-   sint64 bottom = 4;
+    sint64 left = 1;
+    sint64 right = 2;
+    sint64 top = 3;
+    sint64 bottom = 4;
 }
-
 
 ///////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////
 
 
 message PrimitiveBlock {
-  StringTable stringtable = 1;
-  repeated PrimitiveGroup primitivegroup = 2;
+    StringTable stringtable = 1;
+    repeated PrimitiveGroup primitivegroup = 2;
 
-  // Granularity, units of nanodegrees, used to store coordinates in this block
-  int32 granularity = 17 [default=100];
-  // Offset value between the output coordinates coordinates and the granularity grid in unites of nanodegrees.
-  int64 lat_offset = 19 [default=0];
-  int64 lon_offset = 20 [default=0];
+    // Granularity, units of nanodegrees, used to store coordinates in this block
+    int32 granularity = 17;
+    // Offset value between the output coordinates coordinates and the granularity grid in unites of nanodegrees.
+    int64 lat_offset = 19;
+    int64 lon_offset = 20;
 
-// Granularity of dates, normally represented in units of milliseconds since the 1970 epoch.
-  int32 date_granularity = 18 [default=1000];
+    // Granularity of dates, normally represented in units of milliseconds since the 1970 epoch.
+    int32 date_granularity = 18;
 
-
-  // Proposed extension:
-  //optional BBox bbox = XX;
+    // Proposed extension:
+    //optional BBox bbox = XX;
 }
 
 // Group of OSMPrimitives. All primitives in a group must be the same type.
 message PrimitiveGroup {
-  repeated Node     nodes = 1;
-  DenseNodes dense = 2;
-  repeated Way      ways = 3;
-  repeated Relation relations = 4;
-  repeated ChangeSet changesets = 5;
+    repeated Node nodes = 1;
+    DenseNodes dense = 2;
+    repeated Way ways = 3;
+    repeated Relation relations = 4;
+    repeated ChangeSet changesets = 5;
 }
 
-
 /** String table, contains the common strings in each block.
-
  Note that we reserve index '0' as a delimiter, so the entry at that
  index in the table is ALWAYS blank and unused.
-
  */
 message StringTable {
-   repeated bytes s = 1;
+    repeated bytes s = 1;
 }
 
 /* Optional metadata that may be included into each primitive. */
 message Info {
-   int32 version = 1 [default = -1];
-   int64 timestamp = 2;
-   int64 changeset = 3;
-   int32 uid = 4;
-   uint32 user_sid = 5; // String IDs
+    int32 version = 1;
+    int64 timestamp = 2;
+    int64 changeset = 3;
+    int32 uid = 4;
+    uint32 user_sid = 5; // String IDs
 
-   // The visible flag is used to store history information. It indicates that
-   // the current object version has been created by a delete operation on the
-   // OSM API.
-   // When a writer sets this flag, it MUST add a required_features tag with
-   // value "HistoricalInformation" to the HeaderBlock.
-   // If this flag is not available for some object it MUST be assumed to be
-   // true if the file has the required_features tag "HistoricalInformation"
-   // set.
-   bool visible = 6;
+    // The visible flag is used to store history information. It indicates that
+    // the current object version has been created by a delete operation on the
+    // OSM API.
+    // When a writer sets this flag, it MUST add a required_features tag with
+    // value "HistoricalInformation" to the HeaderBlock.
+    // If this flag is not available for some object it MUST be assumed to be
+    // true if the file has the required_features tag "HistoricalInformation"
+    // set.
+    bool visible = 6;
 }
 
 /** Optional metadata that may be included into each primitive. Special dense format used in DenseNodes. */
 message DenseInfo {
-   repeated int32 version = 1 [packed = true];
-   repeated sint64 timestamp = 2 [packed = true]; // DELTA coded
-   repeated sint64 changeset = 3 [packed = true]; // DELTA coded
-   repeated sint32 uid = 4 [packed = true]; // DELTA coded
-   repeated sint32 user_sid = 5 [packed = true]; // String IDs for usernames. DELTA coded
+    repeated int32 version = 1 [packed = true];
+    repeated sint64 timestamp = 2 [packed = true]; // DELTA coded
+    repeated sint64 changeset = 3 [packed = true]; // DELTA coded
+    repeated sint32 uid = 4 [packed = true]; // DELTA coded
+    repeated sint32 user_sid = 5 [packed = true]; // String IDs for usernames. DELTA coded
 
-   // The visible flag is used to store history information. It indicates that
-   // the current object version has been created by a delete operation on the
-   // OSM API.
-   // When a writer sets this flag, it MUST add a required_features tag with
-   // value "HistoricalInformation" to the HeaderBlock.
-   // If this flag is not available for some object it MUST be assumed to be
-   // true if the file has the required_features tag "HistoricalInformation"
-   // set.
-   repeated bool visible = 6 [packed = true];
+    // The visible flag is used to store history information. It indicates that
+    // the current object version has been created by a delete operation on the
+    // OSM API.
+    // When a writer sets this flag, it MUST add a required_features tag with
+    // value "HistoricalInformation" to the HeaderBlock.
+    // If this flag is not available for some object it MUST be assumed to be
+    // true if the file has the required_features tag "HistoricalInformation"
+    // set.
+    repeated bool visible = 6 [packed = true];
 }
-
 
 // THIS IS STUB DESIGN FOR CHANGESETS. NOT USED RIGHT NOW.
 // TODO:    REMOVE THIS?
 message ChangeSet {
-   int64 id = 1;
-//
-//   // Parallel arrays.
-//   repeated uint32 keys = 2 [packed = true]; // String IDs.
-//   repeated uint32 vals = 3 [packed = true]; // String IDs.
-//
-//   optional Info info = 4;
+    int64 id = 1;
+    //
+    //   // Parallel arrays.
+    //   repeated uint32 keys = 2 [packed = true]; // String IDs.
+    //   repeated uint32 vals = 3 [packed = true]; // String IDs.
+    //
+    //   optional Info info = 4;
 
-//   optional int64 created_at = 8;
-//   optional int64 closetime_delta = 9;
-//   optional bool open = 10;
-//   optional HeaderBBox bbox = 11;
+    //   optional int64 created_at = 8;
+    //   optional int64 closetime_delta = 9;
+    //   optional bool open = 10;
+    //   optional HeaderBBox bbox = 11;
 }
 
 
 message Node {
-   sint64 id = 1;
-   // Parallel arrays.
-   repeated uint32 keys = 2 [packed = true]; // String IDs.
-   repeated uint32 vals = 3 [packed = true]; // String IDs.
+    sint64 id = 1;
+    // Parallel arrays.
+    repeated uint32 keys = 2 [packed = true]; // String IDs.
+    repeated uint32 vals = 3 [packed = true]; // String IDs.
 
-   Info info = 4; // May be omitted in omitmeta
+    Info info = 4; // May be omitted in omitmeta
 
-   sint64 lat = 8;
-   sint64 lon = 9;
+    sint64 lat = 8;
+    sint64 lon = 9;
 }
 
 /* Used to densly represent a sequence of nodes that do not have any tags.
-
 We represent these nodes columnwise as five columns: ID's, lats, and
 lons, all delta coded. When metadata is not omitted,
-
 We encode keys & vals for all nodes as a single array of integers
 containing key-stringid and val-stringid, using a stringid of 0 as a
 delimiter between nodes.
-
    ( (<keyid> <valid>)* '0' )*
  */
 
 message DenseNodes {
-   repeated sint64 id = 1 [packed = true]; // DELTA coded
+    repeated sint64 id = 1 [packed = true]; // DELTA coded
 
-   //repeated Info info = 4;
-   DenseInfo denseinfo = 5;
+    //repeated Info info = 4;
+    DenseInfo denseinfo = 5;
 
-   repeated sint64 lat = 8 [packed = true]; // DELTA coded
-   repeated sint64 lon = 9 [packed = true]; // DELTA coded
+    repeated sint64 lat = 8 [packed = true]; // DELTA coded
+    repeated sint64 lon = 9 [packed = true]; // DELTA coded
 
-   // Special packing of keys and vals into one array. May be empty if all nodes in this block are tagless.
-   repeated int32 keys_vals = 10 [packed = true];
+    // Special packing of keys and vals into one array. May be empty if all nodes in this block are tagless.
+    repeated int32 keys_vals = 10 [packed = true];
 }
 
 
 message Way {
-   int64 id = 1;
-   // Parallel arrays.
-   repeated uint32 keys = 2 [packed = true];
-   repeated uint32 vals = 3 [packed = true];
+    int64 id = 1;
+    // Parallel arrays.
+    repeated uint32 keys = 2 [packed = true];
+    repeated uint32 vals = 3 [packed = true];
 
-   Info info = 4;
+    Info info = 4;
 
-   repeated sint64 refs = 8 [packed = true];  // DELTA coded
+    repeated sint64 refs = 8 [packed = true]; // DELTA coded
 }
 
 message Relation {
-  enum MemberType {
-    NODE = 0;
-    WAY = 1;
-    RELATION = 2;
-  }
-   int64 id = 1;
+    enum MemberType {
+        NODE = 0;
+        WAY = 1;
+        RELATION = 2;
+    }
+    int64 id = 1;
 
-   // Parallel arrays.
-   repeated uint32 keys = 2 [packed = true];
-   repeated uint32 vals = 3 [packed = true];
+    // Parallel arrays.
+    repeated uint32 keys = 2 [packed = true];
+    repeated uint32 vals = 3 [packed = true];
 
-   Info info = 4;
+    Info info = 4;
 
-   // Parallel arrays
-   repeated int32 roles_sid = 8 [packed = true]; // This should have been defined as uint32 for consistency, but it is now too late to change it
-   repeated sint64 memids = 9 [packed = true]; // DELTA encoded
-   repeated MemberType types = 10 [packed = true];
+    // Parallel arrays
+    repeated int32 roles_sid = 8 [packed = true];
+    repeated sint64 memids = 9 [packed = true]; // DELTA encoded
+    repeated MemberType types = 10 [packed = true];
 }

@@ -14,30 +14,25 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
 syntax = "proto3";
-option optimize_for = LITE_RUNTIME;
-option java_package = "crosby.binary";
-package OSMPBF;
-
-//protoc --java_out=../.. fileformat.proto
+package OSMReader;
 
 //
 //  STORAGE LAYER: Storing primitives.
 //
 
 message Blob {
-  bytes raw = 1; // No compression
-  int32 raw_size = 2; // When compressed, the uncompressed size
+    bytes raw = 1; // No compression
+    int32 raw_size = 2; // When compressed, the uncompressed size
 
-  // Possible compressed versions of the data.
-  bytes zlib_data = 3;
+    // Possible compressed versions of the data.
+    bytes zlib_data = 3;
 
-  // PROPOSED feature for LZMA compressed data. SUPPORT IS NOT REQUIRED.
-  bytes lzma_data = 4;
+    // PROPOSED feature for LZMA compressed data. SUPPORT IS NOT REQUIRED.
+    bytes lzma_data = 4;
 
-  // Formerly used for bzip2 compressed data. Depreciated in 2010.
-  bytes OBSOLETE_bzip2_data = 5 [deprecated=true]; // Don't reuse this tag number.
+    // Formerly used for bzip2 compressed data. Depreciated in 2010.
+    bytes OBSOLETE_bzip2_data = 5 [deprecated = true]; // Don't reuse this tag number.
 }
 
 /* A file contains an sequence of fileblock headers, each prefixed by
@@ -46,8 +41,8 @@ containing the actual data. types staring with a "_" are reserved.
 */
 
 message BlobHeader {
-  string type = 1;
-  bytes indexdata = 2;
-  int32 datasize = 3;
+    string type = 1;
+    bytes indexdata = 2;
+    int32 datasize = 3;
 }
 
