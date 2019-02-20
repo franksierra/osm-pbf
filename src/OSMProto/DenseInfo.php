@@ -54,7 +54,7 @@ class DenseInfo extends \Google\Protobuf\Internal\Message
      *
      * Generated from protobuf field <code>repeated bool visible = 6 [packed = true];</code>
      */
-    private $visible;
+    private $visible = 0;
 
     /**
      * Constructor.
