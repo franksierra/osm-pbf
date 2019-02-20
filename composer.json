@@ -22,11 +22,14 @@
   "require": {
     "php": ">=5.3.9",
     "google/protobuf": "v3.6.1.3",
-    "mdurrant/php-binary-reader": "^1.0"
+    "mdurrant/php-binary-reader": "^1.0",
+    "ext-zlib": "*"
   },
   "autoload": {
     "psr-4": {
-      "OSMReader\\": "src/OSMReader.php"
+      "OSMReader\\": [
+        "src/"
+      ]
     }
   }
 }
