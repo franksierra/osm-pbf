@@ -176,7 +176,7 @@ class OSMReader
                 "latitude" => 0.000000001 * ($data->getLatOffset() + ($data->getGranularity() * $dense_node["latitude"])),
                 "longitude" => 0.000000001 * ($data->getLonOffset() + ($data->getGranularity() * $dense_node["longitude"])),
                 "changeset_id" => $dense_node["changeset_id"],
-                "visible" => $dense_info->getVisible()[$i] ?? 1,
+                "visible" => isset($dense_info->getVisible()[$i]) ? $dense_info->getVisible()[$i] : 1,
                 "timestamp" => $dense_node["timestamp"] * $data->getDateGranularity(),
                 "version" => $dense_info->getVersion()[$i],
                 "user" => $data->getStringtable()->getS()[(int)$dense_node["user"]],
