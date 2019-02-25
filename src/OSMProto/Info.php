@@ -48,7 +48,7 @@ class Info extends \Google\Protobuf\Internal\Message
      *
      * Generated from protobuf field <code>bool visible = 6;</code>
      */
-    private $visible = false;
+    private $visible = true;
 
     /**
      * Constructor.
