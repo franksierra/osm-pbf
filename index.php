@@ -40,11 +40,12 @@ $osm = new OSMReader($handle);
 
 $file_header = $osm->readFileHeader();
 
+$replication_url = $file_header->getOsmosisReplicationBaseUrl();
 
 $index = 0;     // DenseNodes
 //$index = 1049;  // Ways
 //$index = 1157;  // Relation
-$index = 1061;
+//$index = 1061;
 $osm->skipToBlock($index);
 while ($data = $osm->next()) {
     $reader = $osm->getReader();
@@ -54,10 +55,10 @@ while ($data = $osm->next()) {
     $index++;
 
     $entities = $osm->getElements();
-    echo " " . $entities["type"] . "\n";
+    echo "\t" . $entities["type"] . "\t";
     makeEntity($entities["type"], $entities["data"]);
     $entities = null;
-    echo "ok";
+    echo "ok\n";
 }
 $end_time = time();
 echo "This process took " . ($end_time - $start_time) . " seconds";
@@ -107,6 +108,7 @@ function insert_entity($entity, $values)
     $insert_data["visible"] = $values["visible"];
     $insert_data["timestamp"] = $values["timestamp"];
     $insert_data["version"] = $values["version"];
+    $insert_data["uid"] = $values["uid"];
     $insert_data["user"] = $values["user"];
 
     if (isset($values["timestamp"])) {
