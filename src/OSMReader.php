@@ -8,7 +8,6 @@
 
 namespace OSMReader;
 
-use function Couchbase\defaultDecoder;
 use OSMProto\Blob;
 use OSMProto\BlobHeader;
 use OSMProto\HeaderBlock;
@@ -150,6 +149,7 @@ class OSMReader
             "changeset_id" => 0,
             "visible" => 1,
             "timestamp" => 0,
+            "uid" => 0,
             "user" => 0,
             "tags" => array(),
             "nodes" => array(),
@@ -162,15 +162,17 @@ class OSMReader
             $dense_node["longitude"] += $dense->getLon()[$i];
             $dense_node["changeset_id"] += $dense_info->getChangeset()[$i];
             $dense_node["timestamp"] += $dense_info->getTimestamp()[$i];
+            $dense_node["uid"] += $dense_info->getUid()[$i];
             $dense_node["user"] += $dense_info->getUserSid()[$i];
 
             $dense_node["tags"] = array();
-            if ($dense->getKeysVals()[$ikv] != 0) {
-                do {
-                    $k = $data->getStringtable()->getS()[(int)$dense->getKeysVals()[$ikv]];
-                    $v = $data->getStringtable()->getS()[(int)$dense->getKeysVals()[++$ikv]];
-                    $dense_node["tags"][] = array("key" => $k, "value" => $v);
-                    $ikv++;
+
+            while ($ikv < $dense->getKeysVals()->count() && $dense->getKeysVals()[$ikv] != 0) {
+                $k = $data->getStringtable()->getS()[(int)$dense->getKeysVals()[$ikv++]];
+                $v = $data->getStringtable()->getS()[(int)$dense->getKeysVals()[$ikv++]];
+                $dense_node["tags"][] = array("key" => $k, "value" => $v);
+            }
+            if ($dense->getKeysVals()[$ikv] == 0) {
                 } while ($dense->getKeysVals()[$ikv] != 0);
             } else {
                 $ikv++;
@@ -184,6 +186,7 @@ class OSMReader
                 "visible" => isset($dense_info->getVisible()[$i]) ? $dense_info->getVisible()[$i] : 1,
                 "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $dense_node["timestamp"]),
                 "version" => $dense_info->getVersion()[$i],
+                "uid" => $dense_node["uid"],
                 "user" => $data->getStringtable()->getS()[(int)$dense_node["user"]],
                 "tags" => $dense_node["tags"],
                 "nodes" => $dense_node["nodes"],
@@ -211,6 +214,7 @@ class OSMReader
                 "visible" => $way->getInfo()->getVisible(),
                 "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $way->getInfo()->getTimestamp()),
                 "version" => $way->getInfo()->getVersion(),
+                "uid" => $way->getInfo()->getUid(),
                 "user" => $data->getStringtable()->getS()[$way->getInfo()->getUserSid()],
                 "tags" => array(),
                 "nodes" => array(),
@@ -251,6 +255,7 @@ class OSMReader
                 "visible" => $relation->getInfo()->getVisible(),
                 "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $relation->getInfo()->getTimestamp()),
                 "version" => $relation->getInfo()->getVersion(),
+                "uid" => $relation->getInfo()->getUid(),
                 "user" => $data->getStringtable()->getS()[$relation->getInfo()->getUserSid()],
                 "tags" => array(),
                 "nodes" => array(),
