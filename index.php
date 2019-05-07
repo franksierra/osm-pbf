@@ -29,7 +29,6 @@ foreach ($entity_handlers as $entity => &$handler) {
         die();
     }
 }
-
 require_once __DIR__ . '/vendor/autoload.php';
 
 use OSMReader\OSMReader;
@@ -90,9 +89,7 @@ function makeEntity($entity, $data)
                 insert_entity_member($entity, $datum["id"], $relation)
             );
         }
-
     }
-
 }
 
 function insert_entity($entity, $values)
@@ -116,9 +113,7 @@ function insert_entity($entity, $values)
         $insert_data["timestamp"] = str_replace("Z", "", $insert_data["timestamp"]);
     }
 
-    $escaped_values = array_map('escape', array_values($insert_data));
-    $values = "'" . implode("', '", $escaped_values) . "'";
-    return "INSERT INTO " . $entity . "s VALUES ($values);\n";
+    return format_string($entity, "s", $insert_data);
 }
 
 function insert_entity_tag($entity, $id, $values)
@@ -129,9 +124,7 @@ function insert_entity_tag($entity, $id, $values)
         "v" => $values["value"]
     );
 
-    $escaped_values = array_map('escape', array_values($insert_data));
-    $values = "'" . implode("', '", $escaped_values) . "'";
-    return "INSERT INTO " . $entity . "_tags VALUES ($values);\n";
+    return format_string($entity, "_tags", $insert_data);
 }
 
 
@@ -143,10 +136,7 @@ function insert_entity_node($entity, $entity_id, $node)
         "sequence" => $node["sequence"]
     );
 
-    $escaped_values = array_map('escape', array_values($insert_data));
-    $values = "'" . implode("', '", $escaped_values) . "'";
-    return "INSERT INTO " . $entity . "_nodes VALUES ($values);\n";
-
+    return format_string($entity, "_nodes", $insert_data);
 }
 
 function insert_entity_member($entity, $entity_id, $values)
@@ -158,10 +148,34 @@ function insert_entity_member($entity, $entity_id, $values)
         "member_role" => $values["member_role"],
         "sequence" => $values["sequence"]
     );
-    $escaped_values = array_map('escape', array_values($insert_data));
-    $values = "'" . implode("', '", $escaped_values) . "'";
-    return "INSERT INTO " . $entity . "_members VALUES ($values);\n";
 
+    return format_string($entity, "_members", $insert_data);
+}
+
+function format_string($entity, $sufix, $insert_data, $format = "full_sql")
+{
+    $table = $entity . $sufix;
+    $escaped_values = array_map('escape', array_values($insert_data));
+
+    $formated_string = "";
+    switch ($format) {
+        case "full_sql":
+            $values = "'" . implode("', '", $escaped_values) . "'";
+            $keys = implode(", ", array_keys($insert_data));
+            $formated_string = "INSERT INTO ($keys) " . $table . " VALUES ($values);";
+            break;
+        case "sql":
+            $values = "'" . implode("', '", $escaped_values) . "'";
+            $formated_string = "INSERT INTO " . $table . " VALUES ($values);";
+            break;
+        case "csv":
+            $formated_string = implode("; ", $escaped_values);
+            break;
+            default:
+                $formated_string = "ARSE";
+                break;
+    }
+    return $formated_string . "\n";
 }
 
 function escape($string)
