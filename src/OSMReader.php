@@ -173,8 +173,6 @@ class OSMReader
                 $dense_node["tags"][] = array("key" => $k, "value" => $v);
             }
             if ($dense->getKeysVals()[$ikv] == 0) {
-                } while ($dense->getKeysVals()[$ikv] != 0);
-            } else {
                 $ikv++;
             }
 
