@@ -113,7 +113,7 @@ function insert_entity($entity, $values)
         $insert_data["timestamp"] = str_replace("Z", "", $insert_data["timestamp"]);
     }
 
-    return format_string($entity, "s", $insert_data);
+    return format_output($entity, "s", $insert_data);
 }
 
 function insert_entity_tag($entity, $id, $values)
@@ -124,7 +124,7 @@ function insert_entity_tag($entity, $id, $values)
         "v" => $values["value"]
     );
 
-    return format_string($entity, "_tags", $insert_data);
+    return format_output($entity, "_tags", $insert_data);
 }
 
 
@@ -136,7 +136,7 @@ function insert_entity_node($entity, $entity_id, $node)
         "sequence" => $node["sequence"]
     );
 
-    return format_string($entity, "_nodes", $insert_data);
+    return format_output($entity, "_nodes", $insert_data);
 }
 
 function insert_entity_member($entity, $entity_id, $values)
@@ -149,33 +149,33 @@ function insert_entity_member($entity, $entity_id, $values)
         "sequence" => $values["sequence"]
     );
 
-    return format_string($entity, "_members", $insert_data);
+    return format_output($entity, "_members", $insert_data);
 }
 
-function format_string($entity, $sufix, $insert_data, $format = "full_sql")
+function format_output($entity, $entity_sufix, $insert_data, $format = 'full_sql')
 {
-    $table = $entity . $sufix;
+    $table = $entity . $entity_sufix;
+    $escaped_keys = array_map('escape', array_keys($insert_data));
     $escaped_values = array_map('escape', array_values($insert_data));
 
-    $formated_string = "";
+    $return_string = "";
     switch ($format) {
+        case 'csv':
+            $values = "'" . implode("'; '", $escaped_values) . "'";
+            $return_string = $values . "\n";
+            break;
+        case 'sql':
+            $values = "'" . implode("', '", $escaped_values) . "'";
+            $return_string = "INSERT INTO " . $table . " VALUES ($values);\n";
+            break;
         case "full_sql":
+            $keys = implode(", ", $escaped_keys);
             $values = "'" . implode("', '", $escaped_values) . "'";
-            $keys = implode(", ", array_keys($insert_data));
-            $formated_string = "INSERT INTO ($keys) " . $table . " VALUES ($values);";
+            $return_string = "INSERT INTO " . $table . " ($keys) VALUES ($values);\n";
             break;
-        case "sql":
-            $values = "'" . implode("', '", $escaped_values) . "'";
-            $formated_string = "INSERT INTO " . $table . " VALUES ($values);";
-            break;
-        case "csv":
-            $formated_string = implode("; ", $escaped_values);
-            break;
-            default:
-                $formated_string = "ARSE";
-                break;
+
     }
-    return $formated_string . "\n";
+    return $return_string;
 }
 
 function escape($string)
