@@ -21,9 +21,9 @@ $entity_handlers = array(
 );
 foreach ($entity_handlers as $entity => &$handler) {
     $file_name = "sql/insert_" . $entity . ".sql";
-//    if (is_file($file_name)) {
-//        unlink($file_name);
-//    }
+    if (is_file($file_name)) {
+        unlink($file_name);
+    }
     $handler = fopen($file_name, "a+");
     if (!$handler) {
         die();
@@ -31,11 +31,11 @@ foreach ($entity_handlers as $entity => &$handler) {
 }
 require_once __DIR__ . '/vendor/autoload.php';
 
-use OSMReader\OSMReader;
+use OSMPBFReader\Reader;
 
-$handle = fopen("data/ecuador-latest-internal.osm.pbf", "rb");
+$handle = fopen("data/test.osm.pbf", "rb");
 
-$osm = new OSMReader($handle);
+$osm = new Reader($handle);
 
 $file_header = $osm->readFileHeader();
 
