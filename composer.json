@@ -1,23 +1,23 @@
 {
-  "name": "sierrafayad/osmreader",
-  "description": "Reads Open Street Map .osm.pbf compressed files.",
+  "name": "sierrafayad/osm-pbf-reader",
+  "description": "Reads Open Street Map .osm.pbf compressed files. (Downloaded from GeoFabik)",
   "keywords": [
     "osm",
     "pbf",
     "Open Street Map",
     "openstreetmap"
   ],
-  "homepage": "https://github.com/sierrafayad/osmreader",
+  "homepage": "https://github.com/sierrafayad/osm-pbf-reader",
   "license": "MIT",
   "authors": [
     {
-      "name": "Frank Sierra Fayad",
-      "email": "frank@sierrafayad.com",
-      "role": "Developer"
+      "name": "Frank Sierra-Fayad",
+      "email": "frank@sierrafayad.com"
     }
   ],
   "support": {
-    "issues": "https://github.com/sierrafayad/osmreader/issues"
+    "source": "https://github.com/sierrafayad/osm-pbf-reader",
+    "issues": "https://github.com/sierrafayad/osm-pbf-reader/issues"
   },
   "require": {
     "php": ">=5.6",
@@ -27,12 +27,20 @@
   },
   "autoload": {
     "psr-4": {
-      "OSMReader\\": [
+      "OSMPBF\\": [
         "src/"
       ],
       "OSMProto\\": [
         "src/OSMProto/"
       ]
     }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0-dev"
+    }
+  },
+  "config": {
+    "sort-packages": true
   }
 }

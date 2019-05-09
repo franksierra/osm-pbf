@@ -6,7 +6,7 @@
  * Time: 5:14 PM
  */
 
-namespace OSMReader;
+namespace OSMPBF;
 
 use OSMProto\Blob;
 use OSMProto\BlobHeader;
