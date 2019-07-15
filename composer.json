@@ -7,7 +7,7 @@
     "Open Street Map",
     "openstreetmap"
   ],
-  "homepage": "https://github.com/sierrafayad/osm-pbf-reader",
+  "homepage": "https://github.com/sierrafayad/osm-pbf",
   "license": "MIT",
   "authors": [
     {
@@ -16,8 +16,8 @@
     }
   ],
   "support": {
-    "source": "https://github.com/sierrafayad/osm-pbf-reader",
-    "issues": "https://github.com/sierrafayad/osm-pbf-reader/issues"
+    "source": "https://github.com/sierrafayad/osm-pbf",
+    "issues": "https://github.com/sierrafayad/osm-pbf/issues"
   },
   "require": {
     "php": ">=5.6",
