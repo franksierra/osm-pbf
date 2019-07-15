@@ -1,22 +1,16 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: sierraf
- * Date: 2/19/2019
- * Time: 5:14 PM
- */
 
-namespace OSMPBF;
+namespace OsmPbf;
 
-use OSMProto\Blob;
-use OSMProto\BlobHeader;
-use OSMProto\HeaderBlock;
-use OSMProto\PrimitiveBlock;
-use OSMProto\Relation;
-use OSMProto\Way;
+use OsmProto\Blob;
+use OsmProto\BlobHeader;
+use OsmProto\HeaderBlock;
+use OsmProto\PrimitiveBlock;
+use OsmProto\Relation;
+use OsmProto\Way;
 use PhpBinaryReader\BinaryReader;
 
-class OSMReader
+class Reader
 {
     /** @var PrimitiveBlock $current_primitive */
     private $current_primitive;
@@ -97,7 +91,7 @@ class OSMReader
     public function getElements()
     {
         $data = $this->current_primitive;
-        /** @var \OSMProto\PrimitiveGroup $primitive */
+        /** @var \OsmProto\PrimitiveGroup $primitive */
         $primitive = $data->getPrimitivegroup()[0];
 
         $elements = array(
@@ -136,7 +130,7 @@ class OSMReader
     public function getDenseNodes()
     {
         $data = $this->current_primitive;
-        /** @var \OSMProto\PrimitiveGroup $primitive */
+        /** @var \OsmProto\PrimitiveGroup $primitive */
         $primitive = $data->getPrimitivegroup()[0];
 
         $dense = $primitive->getDense();
@@ -200,7 +194,7 @@ class OSMReader
     public function getWays()
     {
         $data = $this->current_primitive;
-        /** @var \OSMProto\PrimitiveGroup $primitive */
+        /** @var \OsmProto\PrimitiveGroup $primitive */
         $primitive = $data->getPrimitivegroup()[0];
         $ways = $primitive->getWays();
         $_ways = [];
@@ -240,7 +234,7 @@ class OSMReader
     private function getRelations()
     {
         $data = $this->current_primitive;
-        /** @var \OSMProto\PrimitiveGroup $primitive */
+        /** @var \OsmProto\PrimitiveGroup $primitive */
         $primitive = $data->getPrimitivegroup()[0];
         $relations = $primitive->getRelations();
         $_relations = [];
