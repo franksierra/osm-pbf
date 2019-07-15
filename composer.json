@@ -1,6 +1,6 @@
 {
-  "name": "sierrafayad/osm-pbf-reader",
-  "description": "Reads Open Street Map .osm.pbf compressed files. (Downloaded from GeoFabik)",
+  "name": "sierrafayad/osm-pbf",
+  "description": "Works with Open Street Map .osm.pbf compressed files.",
   "keywords": [
     "osm",
     "pbf",
@@ -27,17 +27,13 @@
   },
   "autoload": {
     "psr-4": {
-      "OSMPBF\\": [
-        "src/"
-      ],
-      "OSMProto\\": [
-        "src/OSMProto/"
-      ]
+      "OsmPbf\\": "src/",
+      "OsmProto\\": "src/OSMProto/"
     }
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "1.0-dev"
+      "dev-master": "1.1-dev"
     }
   },
   "config": {
