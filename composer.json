@@ -1,5 +1,5 @@
 {
-  "name": "sierrafayad/osm-pbf",
+  "name": "franksierra/osm-pbf",
   "description": "Works with Open Street Map .osm.pbf compressed files.",
   "keywords": [
     "osm",
@@ -7,17 +7,17 @@
     "Open Street Map",
     "openstreetmap"
   ],
-  "homepage": "https://github.com/sierrafayad/osm-pbf",
+  "homepage": "https://github.com/franksierra/osm-pbf",
   "license": "MIT",
   "authors": [
     {
-      "name": "Frank Sierra-Fayad",
+      "name": "Frank Sierra",
       "email": "frank@sierrafayad.com"
     }
   ],
   "support": {
-    "source": "https://github.com/sierrafayad/osm-pbf",
-    "issues": "https://github.com/sierrafayad/osm-pbf/issues"
+    "source": "https://github.com/franksierra/osm-pbf",
+    "issues": "https://github.com/franksierra/osm-pbf/issues"
   },
   "require": {
     "php": ">=5.6",
