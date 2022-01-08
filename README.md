@@ -23,7 +23,7 @@ use OsmPbf\Reader;
 Create a binary handle to the .osm.pbf file and pass it in the `Reader()` Constructor:
 ```php
 $file_handler = fopen("PathToFile.osm.pbf", "rb");
-$pbfreader = new OSMReader($file_handler);
+$pbfreader = new Reader($file_handler);
 ```
 Call the function `readFileHeader()` to get some useful information about the file that is being read
 ```php
