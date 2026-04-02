@@ -20,8 +20,8 @@
     "issues": "https://github.com/franksierra/osm-pbf/issues"
   },
   "require": {
-    "php": ">=5.6",
-    "google/protobuf": "^3.15.0",
+    "php": ">=8.0",
+    "google/protobuf": "^4.33.7",
     "mdurrant/php-binary-reader": "^1.0",
     "ext-zlib": "*"
   },
