@@ -25,6 +25,13 @@
     "mdurrant/php-binary-reader": "^1.0",
     "ext-zlib": "*"
   },
+  "require-dev": {
+    "phpunit/phpunit": "^11.5"
+  },
+  "scripts": {
+    "test": "phpunit",
+    "test:geofabrik": "phpunit --group geofabrik"
+  },
   "autoload": {
     "psr-4": {
       "OsmPbf\\": "src/",
