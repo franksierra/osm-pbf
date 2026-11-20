@@ -21,7 +21,7 @@
   },
   "require": {
     "php": ">=8.0",
-    "google/protobuf": "^4.33.7",
+    "google/protobuf": "^4.33.6",
     "mdurrant/php-binary-reader": "^1.0",
     "ext-zlib": "*"
   },
