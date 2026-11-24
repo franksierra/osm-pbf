@@ -1,121 +1,80 @@
-# OSM PBF (Open Street Map Protofol Buffer Files)
+# OpenStreetMap Protocol Buffer reader for PHP
+[![Latest version on Packagist](https://img.shields.io/packagist/v/franksierra/osm-pbf.svg)](https://packagist.org/packages/franksierra/osm-pbf)
+[![Total downloads](https://img.shields.io/packagist/dt/franksierra/osm-pbf.svg)](https://packagist.org/packages/franksierra/osm-pbf)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 
-[![Software License](https://img.shields.io/github/license/franksierra/osm-pbf.svg?style=popout)](LICENSE.md)
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/franksierra/osm-pbf.svg?style=popout)](https://packagist.org/packages/franksierra/osm-pbf)
-[![Total Downloads](https://img.shields.io/packagist/dt/franksierra/osm-pbf.svg?style=popout)](https://packagist.org/packages/franksierra/osm-pbf)
-
-This package gives you the ability to work with Open Street Maps Protocol Buffer Files , .osm.pbf. I get them from 
-https://download.geofabrik.de/ and I haven't tried processing planet.osm
+Reads OpenStreetMap `.osm.pbf` extracts one block at a time. Access header metadata, turn dense nodes, ways, and relations into PHP arrays as you read.
 
 ## Installation
 
-Requires PHP 8.1 or later.
-
-Require this package with composer.
-```shell
+The recommended way to install osm-pbf is through
+[Composer](https://getcomposer.org/).
+```sh
 composer require franksierra/osm-pbf
 ```
 
-## Usage
-You can read osm.pbf files using the Reader class:
-```php
-use OsmPbf\Reader;
-```
+## Version Guidance
+| Version | PHP Version  |
+|---------|--------------|
+| 1.2     | >=8.1,<8.7   |
+| 1.0     | >=5.6        |
 
-Create a binary handle to the .osm.pbf file and pass it in the `Reader()` Constructor:
-```php
-$file_handler = fopen("PathToFile.osm.pbf", "rb");
-$pbfreader = new Reader($file_handler);
-```
-Call the function `readFileHeader()` to get some useful information about the file that is being read
-```php
-$file_header = $pbfreader->readFileHeader();
-```
+## Quick Start
+Install the package with Composer. The reader needs PHP 8.1 or later with the zlib extension.
 
-Functions to get the boundaries box:
-```php
-$file_header->getBbox()->getLeft();
-$file_header->getBbox()->getBottom();
-$file_header->getBbox()->getRight();
-$file_header->getBbox()->getTop();
-```
+1. Open the file in binary mode with `fopen($path, 'rb')` and pass the handle to `new OsmPbf\Reader($stream)`.
+2. Call `readFileHeader()` once before reading data blocks. Use `getBbox()` on the returned header when it contains a bounding box. The header also exposes replication metadata when present.
+3. Call `next()` until it returns `false`. After each successful call, `getElements()` returns a batch with a `type` and a `data` array. Dense nodes include coordinates, ways include ordered node references, and relations include ordered members.
+4. Close the file handle when finished.
 
-Functions to get replication information (WIP: Updating the dataset):
 ```php
-$file_header->getOsmosisReplicationTimestamp();
-$file_header->getOsmosisReplicationSequenceNumber();
-$file_header->getOsmosisReplicationBaseUrl();
-```
+$path = 'file.osm.pbf';
+$stream = fopen($path, 'rb');
+if ($stream === false) {
+    throw new RuntimeException("Cannot open PBF file: {$path}");
+}
 
-Starting the data read:
-You could use the `skipToBlock($index)` function to start at any given index (Maybe resume a failed operation):
-```php
-$pbfreader->skipToBlock(0); 
-while ($pbfreader->next()) {
-    $elements = $pbfreader->getElements();
-    $this->processElements($elements);
+try {
+    $reader = new OsmPbf\Reader($stream);
+    $reader->readFileHeader();
+    while ($reader->next() !== false) {
+        $elements = $reader->getElements();
+        // Process the records in $elements['data'].
+    }
+} finally {
+    fclose($stream);
 }
 ```
+To resume after a checkpoint, call `skipToBlock($processedBlocks)` immediately after `readFileHeader()`. It skips that many data blocks from the current position.
 
-The function `processElements($elements)` should be your own implementation but could be something like this:
+## Try the example
+In a checkout of this repository, run these commands from the project root. The example needs PHP 8.1 or later with the zlib extension.
 
-```php
-private function processElements($elements)
-    {
-        $type = $elements['type'];
-
-        $records = [];
-        $tags = [];
-        $nodes = [];
-        $relations = [];
-
-        foreach ($elements['data'] as $element) {
-            $insert_element = [
-                'id' => $element['id'],
-                'changeset_id' => $element['changeset_id'],
-                'visible' => $element['visible'],
-                'timestamp' => $element['timestamp'],
-                'version' => $element['version'],
-                'uid' => $element['uid'],
-                'user' => $element['user'],
-            ];
-            if ($type == "node") {
-                $insert_element["latitude"] = $element["latitude"];
-                $insert_element["longitude"] = $element["longitude"];
-            }
-            if (isset($element["timestamp"])) {
-                $insert_element["timestamp"] = str_replace("T", " ", $element["timestamp"]);
-                $insert_element["timestamp"] = str_replace("Z", "", $element["timestamp"]);
-            }
-            $records[] = $insert_element;
-
-            foreach ($element["tags"] as $tag) {
-                $insert_tag = [
-                    $type . "_id" => $element["id"],
-                    "k" => $tag["key"],
-                    "v" => $tag["value"]
-                ];
-                $tags[] = $insert_tag;
-            }
-            foreach ($element["nodes"] as $node) {
-                $insert_node = [
-                    $type . "_id" => $element["id"],
-                    "node_id" => $node["id"],
-                    "sequence" => $node["sequence"]
-                ];
-                $nodes[] = $insert_node;
-            }
-
-            foreach ($element["relations"] as $relation) {
-                $insert_relation = [
-                    $type . "_id" => $element["id"],
-                    "member_type" => $relation["member_type"],
-                    "member_id" => $relation["member_id"],
-                    "member_role" => $relation["member_role"],
-                    "sequence" => $relation["sequence"]
-                ];
-                $relations[] = $insert_relation;
-            }
-        }
-    }
+```sh
+composer install --no-dev
+php examples/read-sample.php
 ```
+The [runnable example](examples/read-sample.php) reads the bundled [Ashmore and Cartier Islands extract](data/test.osm.pbf) through EOF and counts elements by type.
+
+```text
+Read test.osm.pbf
+node: 1842
+way: 27
+relation: 15
+```
+Pass a path to read your own extract.
+
+```sh
+php examples/read-sample.php "path/to/region.osm.pbf"
+```
+
+
+## Run the tests
+
+On PHP 8.1 or later, run `composer install` to install the development dependencies. Then run `composer test` for the full suite or `composer test:geofabrik` for the offline feature test that reads the bundled extract through EOF.
+
+## License and sample data
+
+The PHP package is [MIT licensed](LICENSE.md).
+
+The sample extract was processed by [Geofabrik](https://download.geofabrik.de/australia-oceania/australia/ashmore-cartier/) and contains data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).

@@ -135,56 +135,58 @@ class Reader
 
         $dense = $primitive->getDense();
         $dense_info = $dense->getDenseinfo();
-        $total = $dense->getId()->count();
-        $dense_node = array(
-            "id" => 0,
-            "latitude" => 0,
-            "longitude" => 0,
-            "changeset_id" => 0,
-            "visible" => 1,
-            "timestamp" => 0,
-            "uid" => 0,
-            "user" => 0,
-            "tags" => array(),
-            "nodes" => array(),
-            "relations" => array()
-        );
+        $ids = $dense->getId();
+        $latitudes = $dense->getLat();
+        $longitudes = $dense->getLon();
+        $changesets = $dense_info->getChangeset();
+        $timestamps = $dense_info->getTimestamp();
+        $uids = $dense_info->getUid();
+        $user_sids = $dense_info->getUserSid();
+        $versions = $dense_info->getVersion();
+        $visibility = $dense_info->getVisible();
+        $keys_vals = $dense->getKeysVals();
+        $keys_vals_count = $keys_vals->count();
+        $strings = $data->getStringtable()->getS();
+        $lat_offset = $data->getLatOffset();
+        $lon_offset = $data->getLonOffset();
+        $granularity = $data->getGranularity();
+
+        $id = $latitude = $longitude = $changeset = $timestamp = $uid = $user_sid = 0;
+        $total = $ids->count();
         $nodes = [];
         for ($i = 0, $ikv = 0; $i < $total; $i++) {
-            $dense_node["id"] += $dense->getId()[$i];
-            $dense_node["latitude"] += $dense->getLat()[$i];
-            $dense_node["longitude"] += $dense->getLon()[$i];
-            $dense_node["changeset_id"] += $dense_info->getChangeset()[$i];
-            $dense_node["timestamp"] += $dense_info->getTimestamp()[$i];
-            $dense_node["uid"] += $dense_info->getUid()[$i];
-            $dense_node["user"] += $dense_info->getUserSid()[$i];
+            $id += $ids[$i];
+            $latitude += $latitudes[$i];
+            $longitude += $longitudes[$i];
+            $changeset += $changesets[$i];
+            $timestamp += $timestamps[$i];
+            $uid += $uids[$i];
+            $user_sid += $user_sids[$i];
 
-            $dense_node["tags"] = array();
-
-            while ($ikv < $dense->getKeysVals()->count() && $dense->getKeysVals()[$ikv] != 0) {
-                $k = $data->getStringtable()->getS()[(int)$dense->getKeysVals()[$ikv++]];
-                $v = $data->getStringtable()->getS()[(int)$dense->getKeysVals()[$ikv++]];
-                $dense_node["tags"][] = array("key" => $k, "value" => $v);
+            $tags = [];
+            while ($ikv < $keys_vals_count && $keys_vals[$ikv] != 0) {
+                $k = $strings[(int)$keys_vals[$ikv++]];
+                $v = $strings[(int)$keys_vals[$ikv++]];
+                $tags[] = array("key" => $k, "value" => $v);
             }
-            if ($dense->getKeysVals()[$ikv] == 0) {
+            if ($ikv < $keys_vals_count) {
                 $ikv++;
             }
 
             $nodes[] = array(
-                "id" => $dense_node["id"],
-                "latitude" => 0.000000001 * ($data->getLatOffset() + ($data->getGranularity() * $dense_node["latitude"])),
-                "longitude" => 0.000000001 * ($data->getLonOffset() + ($data->getGranularity() * $dense_node["longitude"])),
-                "changeset_id" => $dense_node["changeset_id"],
-                "visible" => isset($dense_info->getVisible()[$i]) ? $dense_info->getVisible()[$i] : 1,
-                "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $dense_node["timestamp"]),
-                "version" => $dense_info->getVersion()[$i],
-                "uid" => $dense_node["uid"],
-                "user" => $data->getStringtable()->getS()[(int)$dense_node["user"]],
-                "tags" => $dense_node["tags"],
-                "nodes" => $dense_node["nodes"],
-                "relations" => $dense_node["relations"],
+                "id" => $id,
+                "latitude" => 0.000000001 * ($lat_offset + ($granularity * $latitude)),
+                "longitude" => 0.000000001 * ($lon_offset + ($granularity * $longitude)),
+                "changeset_id" => $changeset,
+                "visible" => $visibility[$i] ?? 1,
+                "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $timestamp),
+                "version" => $versions[$i],
+                "uid" => $uid,
+                "user" => $strings[(int)$user_sid],
+                "tags" => $tags,
+                "nodes" => array(),
+                "relations" => array(),
             );
-
         }
 
         return $nodes;
@@ -197,33 +199,40 @@ class Reader
         /** @var \OsmProto\PrimitiveGroup $primitive */
         $primitive = $data->getPrimitivegroup()[0];
         $ways = $primitive->getWays();
+        $strings = $data->getStringtable()->getS();
         $_ways = [];
         /** @var Way $way */
         foreach ($ways as $way) {
+            $info = $way->getInfo();
             $_way = array(
                 "id" => $way->getId(),
-                "changeset_id" => $way->getInfo()->getChangeset(),
-                "visible" => $way->getInfo()->getVisible(),
-                "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $way->getInfo()->getTimestamp()),
-                "version" => $way->getInfo()->getVersion(),
-                "uid" => $way->getInfo()->getUid(),
-                "user" => $data->getStringtable()->getS()[$way->getInfo()->getUserSid()],
+                "changeset_id" => $info->getChangeset(),
+                "visible" => $info->getVisible(),
+                "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $info->getTimestamp()),
+                "version" => $info->getVersion(),
+                "uid" => $info->getUid(),
+                "user" => $strings[$info->getUserSid()],
                 "tags" => array(),
                 "nodes" => array(),
                 "relations" => array()
             );
             $node_id = 0;
-            for ($i = 0; $i < $way->getRefs()->count(); $i++) {
-                $node_id += $way->getRefs()[$i];
+            $refs = $way->getRefs();
+            $ref_count = $refs->count();
+            for ($i = 0; $i < $ref_count; $i++) {
+                $node_id += $refs[$i];
                 $node = array(
                     "id" => $node_id,
                     "sequence" => $i
                 );
                 $_way["nodes"][] = $node;
             }
-            for ($i = 0; $i < $way->getKeys()->count(); $i++) {
-                $k = $data->getStringtable()->getS()[(int)$way->getKeys()[$i]];
-                $v = $data->getStringtable()->getS()[(int)$way->getVals()[$i]];
+            $keys = $way->getKeys();
+            $values = $way->getVals();
+            $key_count = $keys->count();
+            for ($i = 0; $i < $key_count; $i++) {
+                $k = $strings[(int)$keys[$i]];
+                $v = $strings[(int)$values[$i]];
                 $_way["tags"][] = array("key" => $k, "value" => $v);
             }
             $_ways[] = $_way;
@@ -237,32 +246,41 @@ class Reader
         /** @var \OsmProto\PrimitiveGroup $primitive */
         $primitive = $data->getPrimitivegroup()[0];
         $relations = $primitive->getRelations();
+        $strings = $data->getStringtable()->getS();
         $_relations = [];
 
         /** @var Relation $relation */
         foreach ($relations as $relation) {
+            $info = $relation->getInfo();
             $_relation = array(
                 "id" => $relation->getId(),
-                "changeset_id" => $relation->getInfo()->getChangeset(),
-                "visible" => $relation->getInfo()->getVisible(),
-                "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $relation->getInfo()->getTimestamp()),
-                "version" => $relation->getInfo()->getVersion(),
-                "uid" => $relation->getInfo()->getUid(),
-                "user" => $data->getStringtable()->getS()[$relation->getInfo()->getUserSid()],
+                "changeset_id" => $info->getChangeset(),
+                "visible" => $info->getVisible(),
+                "timestamp" => gmdate("Y-m-d\TH:i:s\Z", $info->getTimestamp()),
+                "version" => $info->getVersion(),
+                "uid" => $info->getUid(),
+                "user" => $strings[$info->getUserSid()],
                 "tags" => array(),
                 "nodes" => array(),
                 "relations" => array()
             );
             $member_id = 0;
-            for ($i = 0; $i < $relation->getKeys()->count(); $i++) {
-                $k = $data->getStringtable()->getS()[(int)$relation->getKeys()[$i]];
-                $v = $data->getStringtable()->getS()[(int)$relation->getVals()[$i]];
+            $keys = $relation->getKeys();
+            $values = $relation->getVals();
+            $key_count = $keys->count();
+            for ($i = 0; $i < $key_count; $i++) {
+                $k = $strings[(int)$keys[$i]];
+                $v = $strings[(int)$values[$i]];
                 $_relation["tags"][] = array("key" => $k, "value" => $v);
             }
 
-            for ($i = 0; $i < $relation->getMemids()->count(); $i++) {
-                $member_id += $relation->getMemids()[$i];
-                switch ($relation->getTypes()[$i]) {
+            $member_ids = $relation->getMemids();
+            $types = $relation->getTypes();
+            $roles = $relation->getRolesSid();
+            $member_count = $member_ids->count();
+            for ($i = 0; $i < $member_count; $i++) {
+                $member_id += $member_ids[$i];
+                switch ($types[$i]) {
                     case Relation\MemberType::NODE:
                         $type = "node";
                         break;
@@ -278,7 +296,7 @@ class Reader
                 $member = array(
                     "member_type" => $type,
                     "member_id" => $member_id,
-                    "member_role" => $data->getStringtable()->getS()[(int)$relation->getRolesSid()[$i]],
+                    "member_role" => $strings[(int)$roles[$i]],
                     "sequence" => $i
                 );
                 $_relation["relations"][] = $member;
