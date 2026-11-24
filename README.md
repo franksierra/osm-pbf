@@ -9,6 +9,8 @@ https://download.geofabrik.de/ and I haven't tried processing planet.osm
 
 ## Installation
 
+Requires PHP 8.1 or later.
+
 Require this package with composer.
 ```shell
 composer require franksierra/osm-pbf
